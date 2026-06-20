@@ -1,0 +1,17 @@
+FastAPI Notes
+
+FastAPI is a modern Python framework for building APIs.
+
+Features:
+- Automatic OpenAPI documentation
+- High performance
+- Async support
+
+Common Commands:
+
+uvicorn main:app --reload
+
+FastAPI uses decorators such as:
+
+@app.get()
+@app.post()

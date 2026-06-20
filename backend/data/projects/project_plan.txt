@@ -1,0 +1,16 @@
+EnterpriseMind Development Plan
+
+Phase 1:
+Build RAG system.
+
+Phase 2:
+Build Multi-RAG architecture.
+
+Phase 3:
+Add Router Agent.
+
+Phase 4:
+Create Dashboard.
+
+Phase 5:
+Deploy to AWS.

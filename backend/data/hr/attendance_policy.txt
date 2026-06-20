@@ -1,0 +1,9 @@
+EnterpriseMind Attendance Policy
+
+Working hours are 9:00 AM to 6:00 PM.
+
+Employees must maintain at least 90% attendance.
+
+Three consecutive unreported absences may lead to disciplinary action.
+
+Remote employees must mark attendance through the portal.

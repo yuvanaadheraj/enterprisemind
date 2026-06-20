@@ -1,0 +1,14 @@
+Docker Notes
+
+Docker is a containerization platform.
+
+Important Commands:
+
+docker build -t image_name .
+
+docker run image_name
+
+Benefits:
+- Portability
+- Scalability
+- Consistent environments
