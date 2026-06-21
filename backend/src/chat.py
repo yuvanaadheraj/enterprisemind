@@ -1,6 +1,7 @@
 from ollama import chat
 
 from router_agent import route_query
+
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import SentenceTransformerEmbeddings
 
@@ -23,14 +24,12 @@ def get_database(db_name):
 # Main Function
 def ask_question(question):
 
-    # Select database using router agent
     selected_db = route_query(question)
 
     print(f"\nUsing database: {selected_db}")
 
     db = get_database(selected_db)
 
-    # Retrieve relevant chunks
     docs = db.similarity_search(
         question,
         k=3
@@ -38,24 +37,26 @@ def ask_question(question):
 
     print("\nRetrieved Documents:")
 
-    for doc in docs:
-        print(doc.metadata)
+    sources = []
 
-    # Build context
+    for doc in docs:
+        source = doc.metadata.get("source", "Unknown")
+        sources.append(source)
+        print(source)
+
     context = "\n\n".join(
         [doc.page_content for doc in docs]
     )
 
-    # Prompt
     prompt = f"""
 You are EnterpriseMind.
 
 Answer ONLY using the provided context.
 
 If the answer is not present in the context,
-say:
+say exactly:
 
-'I could not find that information.'
+I could not find that information.
 
 Context:
 {context}
@@ -64,7 +65,6 @@ Question:
 {question}
 """
 
-    # Ask Ollama
     response = chat(
         model="qwen3:8b",
         messages=[
@@ -75,18 +75,28 @@ Question:
         ]
     )
 
-    return response["message"]["content"]
+    answer = response["message"]["content"]
+
+    if sources:
+        answer += "\n\nSources:\n"
+
+        for source in sorted(set(sources)):
+            answer += f"- {source}\n"
+
+    return answer
 
 
 # Chat Loop
-while True:
+if __name__ == "__main__":
 
-    query = input("\nAsk: ")
+    while True:
 
-    if query.lower() == "exit":
-        break
+        query = input("\nAsk: ")
 
-    answer = ask_question(query)
+        if query.lower() == "exit":
+            break
 
-    print("\nAnswer:")
-    print(answer)
+        answer = ask_question(query)
+
+        print("\nAnswer:")
+        print(answer)

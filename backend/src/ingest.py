@@ -32,6 +32,8 @@ def build_vector_db(data_folder, persist_dir):
 
     documents = load_txt_documents(data_folder)
 
+    print(f"\nLoaded Documents: {len(documents)}")
+
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
         chunk_overlap=100
@@ -39,14 +41,21 @@ def build_vector_db(data_folder, persist_dir):
 
     chunks = splitter.split_documents(documents)
 
+    print(f"Chunks Created: {len(chunks)}")
+
     db = Chroma.from_documents(
         documents=chunks,
         embedding=embedding_model,
         persist_directory=persist_dir
     )
 
+    # Force persistence
+    try:
+        db.persist()
+    except:
+        pass
+
     print(f"Created DB: {persist_dir}")
-    print(f"Chunks: {len(chunks)}")
 
 
 if __name__ == "__main__":
@@ -66,4 +75,4 @@ if __name__ == "__main__":
         "vectorstores/technical_db"
     )
 
-    print("All databases created successfully.")
+    print("\nAll databases created successfully.")
