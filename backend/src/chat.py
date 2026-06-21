@@ -1,18 +1,17 @@
 from ollama import chat
 
-from router_agent import route_query
-
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import SentenceTransformerEmbeddings
 
+from config import MODEL_NAME, TOP_K
+from logger import logger
 
-# Embedding Model
+
 embedding_model = SentenceTransformerEmbeddings(
     model_name="all-MiniLM-L6-v2"
 )
 
 
-# Load Correct Database
 def get_database(db_name):
 
     return Chroma(
@@ -21,31 +20,62 @@ def get_database(db_name):
     )
 
 
-# Main Function
+def calculate_confidence(doc_count):
+
+    if doc_count >= 3:
+        return "High"
+
+    elif doc_count == 2:
+        return "Medium"
+
+    return "Low"
+
+
 def ask_question(question):
 
-    selected_db = route_query(question)
+    logger.info(f"Question: {question}")
 
-    print(f"\nUsing database: {selected_db}")
+    print("\nSearching All Databases...")
 
-    db = get_database(selected_db)
-
-    docs = db.similarity_search(
+    hr_docs = get_database("hr").similarity_search(
         question,
-        k=3
+        k=2
     )
 
-    print("\nRetrieved Documents:")
+    project_docs = get_database("project").similarity_search(
+        question,
+        k=2
+    )
+
+    technical_docs = get_database("technical").similarity_search(
+        question,
+        k=2
+    )
+
+    docs = hr_docs + project_docs + technical_docs
 
     sources = []
 
+    print("\nRetrieved Documents:")
+
     for doc in docs:
-        source = doc.metadata.get("source", "Unknown")
+
+        source = doc.metadata.get(
+            "source",
+            "Unknown"
+        )
+
         sources.append(source)
+
         print(source)
 
+    logger.info(f"Sources: {sources}")
+
     context = "\n\n".join(
-        [doc.page_content for doc in docs]
+        [
+            doc.page_content
+            for doc in docs
+        ]
     )
 
     prompt = f"""
@@ -54,7 +84,7 @@ You are EnterpriseMind.
 Answer ONLY using the provided context.
 
 If the answer is not present in the context,
-say exactly:
+reply exactly:
 
 I could not find that information.
 
@@ -66,7 +96,7 @@ Question:
 """
 
     response = chat(
-        model="qwen3:8b",
+        model=MODEL_NAME,
         messages=[
             {
                 "role": "user",
@@ -77,16 +107,27 @@ Question:
 
     answer = response["message"]["content"]
 
+    confidence = calculate_confidence(
+        len(docs)
+    )
+
+    answer += f"\n\nConfidence: {confidence}"
+
     if sources:
+
         answer += "\n\nSources:\n"
 
-        for source in sorted(set(sources)):
+        for source in sorted(
+            set(sources)
+        ):
+
             answer += f"- {source}\n"
+
+    logger.info("Answer Generated")
 
     return answer
 
 
-# Chat Loop
 if __name__ == "__main__":
 
     while True:

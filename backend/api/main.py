@@ -1,4 +1,7 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI
+from fastapi import UploadFile
+from fastapi import File
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 import sys
@@ -18,12 +21,23 @@ from document_ingestor import ingest_document
 
 app = FastAPI(
     title="EnterpriseMind API",
-    description="Multi-RAG Enterprise Knowledge Assistant",
-    version="2.0"
+    version="1.1"
+)
+app.add_middleware(
+    CORSMiddleware,
+
+    allow_origins=["*"],
+
+    allow_credentials=True,
+
+    allow_methods=["*"],
+
+    allow_headers=["*"],
 )
 
 
 class QueryRequest(BaseModel):
+
     question: str
 
 
@@ -31,20 +45,26 @@ class QueryRequest(BaseModel):
 def home():
 
     return {
-        "message": "EnterpriseMind Running"
+        "message":
+        "EnterpriseMind Running"
     }
 
 
 @app.post("/chat")
-def chat_endpoint(request: QueryRequest):
+def chat_endpoint(
+    request: QueryRequest
+):
 
     answer = ask_question(
         request.question
     )
 
     return {
-        "question": request.question,
-        "answer": answer
+        "question":
+        request.question,
+
+        "answer":
+        answer
     }
 
 
@@ -80,6 +100,9 @@ async def upload_document(
     )
 
     return {
-        "filename": file.filename,
-        "result": result
+        "filename":
+        file.filename,
+
+        "result":
+        result
     }
